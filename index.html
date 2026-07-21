@@ -1,0 +1,2064 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Sarasas JumpFit Battle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
+    #loginGate, #loginGate *{ font-family:'Kanit',sans-serif; }
+    #loginGate input[type="text"]{ color:#1f2937 !important; }
+    #loginGate input[type="text"]::placeholder{ color:#9ca3af; }
+    #loginGate{
+      position:fixed; inset:0; z-index:20000;
+      background:linear-gradient(135deg,#ff5ab7 0%,#45c9ff 33%,#ff8a2a 66%,#55df6f 100%);
+      background-size:300% 300%;
+      animation:gateGradient 14s ease infinite;
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+    }
+    @keyframes gateGradient{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+    #loginGate::before{
+      content:""; position:fixed; inset:0; background:rgba(0,0,0,.25); z-index:-1;
+    }
+    :root{
+      --bg:#07111f;
+      --panel:#101d31;
+      --panel2:#162941;
+      --text:#f8fbff;
+      --muted:#aebcd2;
+      --line:rgba(255,255,255,.14);
+      --cyan:#55d9ff;
+      --good:#47df7c;
+      --warn:#ffd25f;
+      --bad:#ff7070;
+      --pink:#ff5ab7;
+      --blue:#45c9ff;
+      --orange:#ff8a2a;
+      --green:#55df6f;
+      --unknown:#bfcce0;
+      --radius:24px;
+      --shadow:0 22px 70px rgba(0,0,0,.38);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 16% 5%, rgba(69,201,255,.25), transparent 30%),
+        radial-gradient(circle at 88% 8%, rgba(255,90,183,.20), transparent 34%),
+        linear-gradient(135deg,#06101d,#0d192d 52%,#07111f);
+      min-height:100vh;
+    }
+    .wrap{width:min(1500px,96vw);margin:auto;padding:20px 0 34px}
+    header{
+      display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px
+    }
+    .brand{display:flex;gap:14px;align-items:center}
+    .logo{
+      width:58px;height:58px;border-radius:20px;display:grid;place-items:center;
+      background:conic-gradient(from 120deg,var(--pink),var(--blue),var(--orange),var(--green),var(--pink));
+      box-shadow:0 15px 45px rgba(85,217,255,.22);
+      font-size:30px;font-weight:900
+    }
+    .school-logo-ring{
+      position:relative;
+      width:96px;height:96px;
+      border-radius:50%;
+      display:grid;place-items:center;
+      flex-shrink:0;
+    }
+    .school-logo-ring::before{
+      content:"";
+      position:absolute;
+      inset:-6px;
+      border-radius:50%;
+      background:conic-gradient(from 0deg,
+        var(--pink) 0deg, var(--blue) 90deg, var(--orange) 180deg, var(--green) 270deg, var(--pink) 360deg);
+      animation:schoolLogoSpin 3s linear infinite;
+      filter:blur(1.5px);
+    }
+    .school-logo-ring::after{
+      content:"";
+      position:absolute;
+      inset:-6px;
+      border-radius:50%;
+      background:conic-gradient(from 0deg,
+        var(--pink) 0deg, var(--blue) 90deg, var(--orange) 180deg, var(--green) 270deg, var(--pink) 360deg);
+      animation:schoolLogoSpin 3s linear infinite;
+      opacity:.65;
+      filter:blur(12px);
+    }
+    @keyframes schoolLogoSpin{ to{ transform:rotate(360deg); } }
+    .school-logo-img{
+      position:relative;
+      z-index:2;
+      width:86px;height:86px;
+      border-radius:50%;
+      object-fit:cover;
+      border:4px solid var(--panel);
+      box-shadow:0 8px 22px rgba(17,24,39,.28);
+      background:#fff;
+    }
+    h1{font-size:clamp(24px,3vw,43px);margin:0}
+    .sub{color:var(--muted);font-size:14px;margin-top:4px;line-height:1.45}
+    .pill{
+      border:1px solid var(--line);background:rgba(255,255,255,.07);border-radius:999px;
+      padding:10px 14px;color:var(--muted);display:flex;align-items:center;gap:8px;white-space:nowrap
+    }
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--warn);box-shadow:0 0 14px var(--warn)}
+    .dot.ok{background:var(--good);box-shadow:0 0 14px var(--good)}
+    .dot.bad{background:var(--bad);box-shadow:0 0 14px var(--bad)}
+    .grid{display:grid;grid-template-columns:1.35fr .95fr;gap:16px}
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.045));
+      border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden
+    }
+    .stage{
+      position:relative;aspect-ratio:16/9;min-height:420px;background:#030710;overflow:hidden
+    }
+    video,#overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);transform-origin:center center}
+    #overlay{z-index:3}
+
+    .stage.fullscreen-stage{
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      width:100vw;
+      height:100vh;
+      min-height:100vh;
+      aspect-ratio:auto;
+      border-radius:0;
+      background:#030710;
+    }
+    .stage.fullscreen-stage video,
+    .stage.fullscreen-stage #overlay{
+      width:100vw;
+      height:100vh;
+    }
+    .top-scoreboard{
+      position:absolute;
+      top:14px;
+      left:14px;
+      right:14px;
+      z-index:7;
+      display:grid;
+      grid-template-columns:repeat(4, minmax(120px, 1fr));
+      gap:10px;
+      pointer-events:none;
+    }
+    .screen-score{
+      border:1px solid rgba(255,255,255,.20);
+      background:rgba(7,17,31,.78);
+      backdrop-filter:blur(12px);
+      border-radius:18px;
+      padding:10px 14px;
+      box-shadow:0 12px 35px rgba(0,0,0,.22);
+      border-top:5px solid var(--accent);
+    }
+    .screen-score small{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.1;
+    }
+    .screen-score b{
+      display:block;
+      font-size:clamp(28px, 4vw, 58px);
+      line-height:1;
+      font-weight:950;
+      font-variant-numeric:tabular-nums;
+      color:#fff;
+      text-shadow:0 2px 18px rgba(0,0,0,.40);
+      margin-top:4px;
+    }
+    .screen-score span{
+      color:var(--accent);
+      font-weight:950;
+      font-size:14px;
+    }
+    .fullscreen-stage .top-scoreboard{
+      top:18px;
+      left:20px;
+      right:20px;
+      gap:14px;
+    }
+    .fullscreen-stage .screen-score{
+      padding:14px 18px;
+      border-radius:22px;
+    }
+    .fullscreen-stage .screen-score small{font-size:14px;}
+    .fullscreen-stage .screen-score span{font-size:18px;}
+    .fullscreen-stage .screen-score b{font-size:clamp(46px, 7vw, 110px);}
+    .fullscreen-stage .hud{left:20px;right:20px;bottom:20px;}
+    .fullscreen-stage .detected strong{font-size:clamp(28px,4vw,62px);}
+    .fullscreen-stage .detected span{font-size:clamp(14px,1.4vw,22px);}
+    .fullscreen-stage .timer{min-width:220px;}
+    .fullscreen-stage .time{font-size:clamp(48px,6vw,96px);}
+
+    .shade{position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,transparent 55%,rgba(3,7,16,.82));pointer-events:none}
+    .empty{
+      position:absolute;inset:0;z-index:5;display:grid;place-items:center;text-align:center;padding:30px;
+      background:radial-gradient(circle at center,rgba(85,217,255,.14),transparent 35%),linear-gradient(135deg,#07111f,#0b1728)
+    }
+    .empty.hide{display:none}
+    .empty .icon{font-size:76px}
+    .empty h2{margin:10px 0 6px;font-size:28px}
+    .empty p{color:var(--muted);line-height:1.7;max-width:650px;margin:0 auto}
+    .hud{
+      position:absolute;left:16px;right:16px;bottom:16px;z-index:6;display:flex;gap:12px;align-items:flex-end;justify-content:space-between;pointer-events:none
+    }
+    .timer,.detected{
+      background:rgba(7,17,31,.84);border:1px solid var(--line);backdrop-filter:blur(12px);border-radius:20px;padding:12px 16px
+    }
+    .timer{order:1;text-align:right}
+    .timer small,.detected small{display:block;color:var(--muted);font-size:12px}
+    .time{font-size:43px;font-weight:950;line-height:1;font-variant-numeric:tabular-nums}
+    .detected{text-align:left;min-width:min(560px,60vw);order:0}
+    .detected strong{font-size:24px;display:block}
+    .detected span{font-size:13px;color:var(--muted)}
+    .controls{
+      display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:14px;background:rgba(5,11,21,.65);border-top:1px solid var(--line)
+    }
+    button,input,select{font:inherit}
+    button{
+      position:relative;
+      overflow:visible;
+      border:0;border-radius:16px;min-height:48px;padding:11px 14px;font-weight:900;cursor:pointer;
+      background:var(--panel2);color:var(--text);border:1px solid var(--line);
+      --glow-color:rgba(10,163,214,.45);
+      box-shadow:
+        0 4px 0 rgba(17,24,39,.16),
+        0 7px 14px rgba(17,24,39,.14),
+        inset 0 1px 0 rgba(255,255,255,.55);
+      transform:translateY(0);
+      transition:transform .12s cubic-bezier(.2,.8,.3,1.4), box-shadow .12s ease, filter .12s ease;
+    }
+    button::before{
+      content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;overflow:hidden;
+      background:linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 50%);
+      opacity:.9;
+    }
+    button::after{
+      content:"";position:absolute;inset:-3px;border-radius:inherit;pointer-events:none;z-index:-1;
+      box-shadow:0 0 0 0 var(--glow-color);opacity:0;transition:opacity .2s ease;
+    }
+    button:hover:not(:disabled){
+      transform:translateY(-2px);
+      filter:brightness(1.03);
+      box-shadow:
+        0 6px 0 rgba(17,24,39,.16),
+        0 12px 22px rgba(17,24,39,.18),
+        inset 0 1px 0 rgba(255,255,255,.6);
+    }
+    button:hover:not(:disabled)::after{
+      opacity:1;animation:btnGlowPulse 1.3s ease-in-out infinite;
+    }
+    @keyframes btnGlowPulse{
+      0%,100%{box-shadow:0 0 12px 1px var(--glow-color);}
+      50%{box-shadow:0 0 24px 6px var(--glow-color);}
+    }
+    button:active:not(:disabled){
+      transform:translateY(3px) scale(.985);
+      filter:brightness(.97);
+      box-shadow:
+        0 1px 0 rgba(17,24,39,.16),
+        0 2px 6px rgba(17,24,39,.14),
+        inset 0 1px 0 rgba(255,255,255,.4);
+      transition:transform .05s ease, box-shadow .05s ease;
+    }
+    button:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;filter:none}
+    button:disabled::after{display:none}
+    .btn-ripple{
+      position:absolute;border-radius:50%;background:rgba(255,255,255,.55);
+      transform:scale(0);pointer-events:none;animation:btnRippleAnim .55s ease-out forwards;
+    }
+    @keyframes btnRippleAnim{ to{ transform:scale(2.6); opacity:0; } }
+    .primary{--glow-color:rgba(47,159,196,.55);background:linear-gradient(135deg,#59daff,#c1f3ff);color:#07111f;border:none;box-shadow:0 4px 0 #2f9fc4,0 7px 14px rgba(47,159,196,.35),inset 0 1px 0 rgba(255,255,255,.7)}
+    .primary:hover:not(:disabled){box-shadow:0 6px 0 #2f9fc4,0 12px 22px rgba(47,159,196,.4),inset 0 1px 0 rgba(255,255,255,.75)}
+    .primary:active:not(:disabled){box-shadow:0 1px 0 #2f9fc4,0 2px 6px rgba(47,159,196,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+    .success{--glow-color:rgba(43,168,89,.55);background:linear-gradient(135deg,#50df7e,#c8ffd3);color:#07111f;border:none;box-shadow:0 4px 0 #2ba859,0 7px 14px rgba(43,168,89,.35),inset 0 1px 0 rgba(255,255,255,.7)}
+    .success:hover:not(:disabled){box-shadow:0 6px 0 #2ba859,0 12px 22px rgba(43,168,89,.4),inset 0 1px 0 rgba(255,255,255,.75)}
+    .success:active:not(:disabled){box-shadow:0 1px 0 #2ba859,0 2px 6px rgba(43,168,89,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+    .danger{--glow-color:rgba(224,69,63,.55);background:linear-gradient(135deg,#ff7070,#ffd0d0);color:#07111f;border:none;box-shadow:0 4px 0 #c94b4b,0 7px 14px rgba(201,75,75,.35),inset 0 1px 0 rgba(255,255,255,.7)}
+    .danger:hover:not(:disabled){box-shadow:0 6px 0 #c94b4b,0 12px 22px rgba(201,75,75,.4),inset 0 1px 0 rgba(255,255,255,.75)}
+    .danger:active:not(:disabled){box-shadow:0 1px 0 #c94b4b,0 2px 6px rgba(201,75,75,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+    .ghost{--glow-color:rgba(255,255,255,.35);background:rgba(255,255,255,.075);color:var(--text);border:1px solid var(--line);box-shadow:0 3px 0 rgba(0,0,0,.35),0 5px 10px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.15)}
+    .ghost:hover:not(:disabled){box-shadow:0 5px 0 rgba(0,0,0,.35),0 9px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.2)}
+    .ghost:active:not(:disabled){box-shadow:0 1px 0 rgba(0,0,0,.35),0 2px 5px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.1)}
+    .side{display:flex;flex-direction:column;gap:16px}
+    .panel{padding:16px}
+    .title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;font-weight:950;font-size:18px}
+    .big-color{
+      border:1px solid var(--line);border-radius:22px;padding:18px;background:rgba(255,255,255,.06);
+      display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;margin-bottom:12px
+    }
+    .color-dot{width:70px;height:70px;border-radius:24px;background:var(--unknown);box-shadow:0 0 30px rgba(255,255,255,.12)}
+    .color-name{font-size:34px;font-weight:950;line-height:1}
+    .confidence{color:var(--muted);font-size:14px;margin-top:6px}
+    .meter{height:9px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:10px}
+    .meter i{display:block;height:100%;width:0;border-radius:999px;background:var(--cyan);transition:.16s width ease}
+    .score-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .team{
+      position:relative;overflow:hidden;border:1px solid var(--line);border-radius:19px;background:rgba(255,255,255,.055);padding:13px
+    }
+    .team:before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:var(--accent)}
+    .team .name{font-weight:950;margin-top:4px}
+    .team .count{font-size:42px;font-weight:950;line-height:1;margin-top:10px;font-variant-numeric:tabular-nums}
+    .team .mini{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;margin-top:8px}
+    .team .bar{height:7px;border-radius:999px;background:rgba(255,255,255,.11);overflow:hidden;margin-top:10px}
+    .team .bar i{display:block;height:100%;width:0;background:var(--accent);transition:.2s width ease}
+    .settings{display:grid;gap:10px}
+    .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .field{display:grid;gap:7px}
+    .field label{color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:10px}
+    input[type=number],input[type=range],select{
+      width:100%;min-height:42px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--text);padding:8px 10px;outline:none
+    }
+    input[type=range]{padding:0;accent-color:#59daff}
+    .calib{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .pink{--glow-color:rgba(255,90,183,.55);background:linear-gradient(135deg,#ff5ab7,#ffd2ec);color:#5c1339;border:none;box-shadow:0 4px 0 #c23e8c,0 7px 14px rgba(194,62,140,.35),inset 0 1px 0 rgba(255,255,255,.7)}
+    .pink:hover:not(:disabled){box-shadow:0 6px 0 #c23e8c,0 12px 22px rgba(194,62,140,.4),inset 0 1px 0 rgba(255,255,255,.75)}
+    .pink:active:not(:disabled){box-shadow:0 1px 0 #c23e8c,0 2px 6px rgba(194,62,140,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+    .blue{--glow-color:rgba(69,201,255,.55);background:linear-gradient(135deg,#45c9ff,#d0f2ff);color:#073a52;border:none;box-shadow:0 4px 0 #2b96c4,0 7px 14px rgba(43,150,196,.35),inset 0 1px 0 rgba(255,255,255,.7)}
+    .blue:hover:not(:disabled){box-shadow:0 6px 0 #2b96c4,0 12px 22px rgba(43,150,196,.4),inset 0 1px 0 rgba(255,255,255,.75)}
+    .blue:active:not(:disabled){box-shadow:0 1px 0 #2b96c4,0 2px 6px rgba(43,150,196,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+    .orange{--glow-color:rgba(255,138,42,.55);background:linear-gradient(135deg,#ff8a2a,#fff3b8);color:#5c2f00;border:none;box-shadow:0 4px 0 #c2650f,0 7px 14px rgba(194,101,15,.35),inset 0 1px 0 rgba(255,255,255,.7)}
+    .orange:hover:not(:disabled){box-shadow:0 6px 0 #c2650f,0 12px 22px rgba(194,101,15,.4),inset 0 1px 0 rgba(255,255,255,.75)}
+    .orange:active:not(:disabled){box-shadow:0 1px 0 #c2650f,0 2px 6px rgba(194,101,15,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+    .green{--glow-color:rgba(85,223,111,.55);background:linear-gradient(135deg,#55df6f,#ceffd6);color:#0a4d1c;border:none;box-shadow:0 4px 0 #2ba84a,0 7px 14px rgba(43,168,74,.35),inset 0 1px 0 rgba(255,255,255,.7)}
+    .green:hover:not(:disabled){box-shadow:0 6px 0 #2ba84a,0 12px 22px rgba(43,168,74,.4),inset 0 1px 0 rgba(255,255,255,.75)}
+    .green:active:not(:disabled){box-shadow:0 1px 0 #2ba84a,0 2px 6px rgba(43,168,74,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left}
+    th{color:var(--muted)}
+    td:nth-child(2),td:nth-child(3){text-align:right}
+    tr:last-child td{border-bottom:0}
+    .notice{
+      border:1px solid rgba(255,210,95,.45);background:rgba(255,210,95,.09);border-radius:18px;padding:12px;color:#ffe5a3;line-height:1.6;font-size:13px
+    }
+    .notice.ok{border-color:rgba(71,223,124,.35);background:rgba(71,223,124,.08);color:#caffd7}
+
+
+    .bottom-panel-wrap{
+      margin-top:16px;
+      width:100%;
+    }
+    .bottom-panel-control{
+      padding:16px;
+    }
+    .bottom-panel-control .title{
+      margin-bottom:10px;
+    }
+    .bottom-panel-control .panel-choice-grid{
+      grid-template-columns:repeat(6, minmax(130px, 1fr));
+    }
+    .bottom-panel-control .panel-actions{
+      grid-template-columns:repeat(2, minmax(140px, 220px));
+      justify-content:end;
+    }
+
+    .panel-toggle-card{
+      padding:16px;
+    }
+    .panel-choice-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:10px;
+    }
+    .panel-choice{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:9px 10px;
+      background:rgba(255,255,255,.055);
+      color:var(--text);
+      font-size:13px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .panel-choice input{
+      width:17px;
+      height:17px;
+      accent-color:var(--cyan);
+      cursor:pointer;
+    }
+    .panel-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:10px;
+    }
+    .panel-mini-btn{
+      min-height:34px;
+      padding:6px 10px;
+      border-radius:12px;
+      font-size:12px;
+    }
+    .hide-panel-btn{
+      min-height:30px;
+      padding:5px 9px;
+      border-radius:10px;
+      font-size:12px;
+      font-weight:850;
+      background:rgba(255,255,255,.075);
+      color:var(--muted);
+      border:1px solid var(--line);
+    }
+    .hide-panel-btn:hover{
+      color:var(--text);
+    }
+    .side-panel-hidden{
+      display:none !important;
+    }
+    .side.collapsed-empty{
+      gap:16px;
+    }
+
+    .log{height:112px;overflow:auto;border:1px solid var(--line);border-radius:16px;background:rgba(0,0,0,.18);padding:10px;color:var(--muted);font-size:13px;line-height:1.55}
+    .toast{
+      position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(18px);opacity:0;pointer-events:none;z-index:100;
+      background:rgba(7,17,31,.94);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:18px;padding:12px 16px;max-width:92vw;text-align:center;transition:.2s ease
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .confetti{position:fixed;inset:0;pointer-events:none;z-index:90;overflow:hidden}
+    .confetti span{position:absolute;top:-20px;width:10px;height:16px;border-radius:3px;animation:fall linear forwards}
+    @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.2}}
+    @media(max-width:1100px){.grid{grid-template-columns:1fr}.stage{min-height:330px}.controls{grid-template-columns:1fr 1fr}}
+
+    @media(max-width:1100px){
+      .bottom-panel-control .panel-choice-grid{
+        grid-template-columns:1fr 1fr 1fr;
+      }
+    }
+
+    @media(max-width:640px){
+
+      .screen-hud-grid,.screen-range-grid{grid-template-columns:1fr}
+      .top-scoreboard{width:132px !important;top:8px !important;left:8px !important}
+      .screen-score b{font-size:24px !important}
+      .hud{left:8px !important;right:8px !important;bottom:8px !important}
+
+      .bottom-panel-control .panel-choice-grid{grid-template-columns:1fr}
+      .bottom-panel-control .panel-actions{grid-template-columns:1fr;justify-content:stretch}
+
+      .panel-choice-grid,.panel-actions{grid-template-columns:1fr}
+
+      .top-scoreboard{grid-template-columns:1fr 1fr;top:8px;left:8px;right:8px;gap:6px}
+      .screen-score{padding:7px 9px;border-radius:14px;border-top-width:4px}
+      .screen-score b{font-size:28px}
+      .screen-score small,.screen-score span{font-size:11px}
+
+      header{flex-direction:column;align-items:flex-start}.pill{width:100%;justify-content:center}.controls,.score-grid,.mini-grid,.calib{grid-template-columns:1fr}
+      .hud{flex-direction:column;align-items:stretch}.detected{text-align:left;min-width:auto}.time{font-size:34px}.color-name{font-size:28px}
+    }
+  
+    /* Compact left-side in-camera HUD */
+    .stage{
+      --score-scale:.72;
+      --hud-scale:.78;
+      --scoreboard-display:grid;
+      --timer-display:block;
+      --detected-display:block;
+    }
+    .top-scoreboard{
+      top:14px !important;
+      left:14px !important;
+      right:auto !important;
+      width:min(168px, 32vw) !important;
+      display:var(--scoreboard-display, grid) !important;
+      grid-template-columns:1fr !important;
+      gap:6px !important;
+      transform:scale(var(--score-scale, .72));
+      transform-origin:top left;
+    }
+    .screen-score{
+      padding:6px 8px !important;
+      border-radius:12px !important;
+      border-top-width:3px !important;
+      box-shadow:0 8px 22px rgba(0,0,0,.22) !important;
+      background:rgba(7,17,31,.72) !important;
+    }
+    .screen-score small{
+      font-size:10px !important;
+    }
+    .screen-score span{
+      font-size:10px !important;
+    }
+    .screen-score b{
+      font-size:30px !important;
+      margin-top:1px !important;
+    }
+    .fullscreen-stage .top-scoreboard{
+      top:18px !important;
+      left:20px !important;
+      right:auto !important;
+      width:190px !important;
+      gap:8px !important;
+      transform:scale(var(--score-scale, .72));
+      transform-origin:top left;
+    }
+    .fullscreen-stage .screen-score{
+      padding:8px 10px !important;
+      border-radius:14px !important;
+      border-top-width:4px !important;
+    }
+    .fullscreen-stage .screen-score small{
+      font-size:12px !important;
+    }
+    .fullscreen-stage .screen-score span{
+      font-size:12px !important;
+    }
+    .fullscreen-stage .screen-score b{
+      font-size:42px !important;
+    }
+    .hud{
+      transform:scale(var(--hud-scale, .78));
+      transform-origin:bottom left;
+      width:calc(100% / var(--hud-scale, .78));
+    }
+    .timer{
+      display:var(--timer-display, block) !important;
+      min-width:130px !important;
+      padding:8px 10px !important;
+      border-radius:14px !important;
+    }
+    .detected{
+      display:var(--detected-display, block) !important;
+      min-width:260px !important;
+      max-width:440px !important;
+      padding:8px 10px !important;
+      border-radius:14px !important;
+    }
+    .time{
+      font-size:32px !important;
+    }
+    .detected strong{
+      font-size:18px !important;
+    }
+    .detected span{
+      font-size:11px !important;
+    }
+    .timer small,.detected small{
+      font-size:10px !important;
+    }
+    .fullscreen-stage .hud{
+      left:20px !important;
+      right:20px !important;
+      bottom:20px !important;
+      transform:scale(var(--hud-scale, .78));
+      transform-origin:bottom left;
+      width:calc(100% / var(--hud-scale, .78));
+    }
+    .fullscreen-stage .timer{
+      min-width:170px !important;
+    }
+    .fullscreen-stage .time{
+      font-size:44px !important;
+    }
+    .fullscreen-stage .detected{
+      min-width:360px !important;
+      max-width:620px !important;
+    }
+    .fullscreen-stage .detected strong{
+      font-size:28px !important;
+    }
+    .fullscreen-stage .detected span{
+      font-size:15px !important;
+    }
+    .screen-hud-controls{
+      margin-top:14px;
+      padding-top:12px;
+      border-top:1px solid var(--line);
+    }
+    .screen-hud-controls .screen-control-title{
+      font-weight:950;
+      margin-bottom:8px;
+    }
+    .screen-hud-grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(160px, 1fr));
+      gap:8px;
+      margin-bottom:10px;
+    }
+    .screen-range-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+  
+    /* Timer safe-area fix: keep remaining-time box inside the camera screen */
+    .hud{
+      left:22px !important;
+      right:86px !important;
+      width:calc((100% - 108px) / var(--hud-scale, .78)) !important;
+      max-width:none !important;
+    }
+    .timer{
+      margin-right:18px !important;
+    }
+    .fullscreen-stage .hud{
+      left:28px !important;
+      right:110px !important;
+      width:calc((100% - 138px) / var(--hud-scale, .78)) !important;
+    }
+    .fullscreen-stage .timer{
+      margin-right:26px !important;
+    }
+    .hud.hud-expanded .timer{
+      padding:12px 16px !important;
+      border-radius:18px !important;
+    }
+    .hud.hud-expanded .detected{
+      padding:12px 16px !important;
+      border-radius:18px !important;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- ===================== หน้าเข้าสู่ระบบ (Login Gate) ===================== -->
+<div id="loginGate" class="p-4">
+  <div id="login-card" class="bg-white w-full max-w-md rounded-3xl shadow-2xl border-4 border-white p-8 text-center bg-opacity-95 transition-all duration-500">
+    <div id="card-content">
+      <div class="text-6xl mb-4 flex justify-center gap-4 animate-bounce">
+        <span>🏆</span>
+        <span>🏃‍♂️</span>
+      </div>
+      <h1 class="text-3xl font-bold text-amber-900 mb-2">ยินดีต้อนรับเข้าสู่ กีฬาสี</h1>
+      <p class="text-gray-600 mb-6">กรุณากรอกเลขประจำตัวนักเรียน เพื่อเริ่มต้นกิจกรรม</p>
+
+      <div class="mb-8">
+        <div class="w-32 h-32 mx-auto rounded-full border-4 border-amber-200 shadow-lg overflow-hidden bg-white flex items-center justify-center hover:scale-105 transition-transform">
+          <img src="https://i.postimg.cc/zB9FXvXQ/loko-sws.png" alt="โลโก้โรงเรียน" class="w-full h-full object-cover">
+        </div>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+        <div class="text-left">
+          <label class="text-gray-700 font-medium ml-1">เลขประจำตัวนักเรียน</label>
+          <input type="text" id="studentId" required placeholder="เช่น 12345" inputmode="numeric" autocomplete="off"
+            class="w-full mt-2 p-4 border-2 border-amber-300 rounded-2xl bg-amber-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-amber-200">
+        </div>
+        <button type="submit" id="submitBtn"
+          class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-2xl text-xl shadow-lg transition-transform transform active:scale-95">
+          🏆 เข้าสู่สนามกีฬาสี
+        </button>
+      </form>
+
+      <div class="mt-8">
+        <button type="button" onclick="openModal('teacherModal')" class="bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 text-amber-800 font-semibold py-2 px-6 rounded-full transition">
+          👨‍💻 ผู้จัดทำ (คลิกเพื่อดูประวัติ)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal ต้อนรับ -->
+  <div id="welcomeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center border-4 border-green-400">
+      <div class="text-5xl mb-4">🎉</div>
+      <h2 class="text-2xl font-bold text-green-600 mb-2">ยินดีต้อนรับเข้าสู่ระบบ!</h2>
+      <div id="studentInfo" class="bg-green-50 p-4 rounded-2xl text-left mb-6 text-green-900 font-medium"></div>
+      <button type="button" onclick="closeModal('welcomeModal'); enterApp();" class="w-full bg-green-500 text-white font-bold py-3 rounded-2xl">เข้าสู่สนามแข่งขัน</button>
+    </div>
+  </div>
+
+  <!-- Modal แจ้งเตือนทั่วไป -->
+  <div id="alertModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center border-4 border-red-400">
+      <div class="text-5xl mb-4">⚠️</div>
+      <h2 id="alertTitle" class="text-2xl font-bold text-red-600 mb-2">แจ้งเตือน</h2>
+      <p id="alertMessage" class="text-gray-600 mb-6"></p>
+      <button type="button" onclick="closeModal('alertModal')" class="w-full bg-red-500 text-white font-bold py-3 rounded-2xl">ตกลง</button>
+    </div>
+  </div>
+
+  <!-- Modal ผู้จัดทำ -->
+  <div id="teacherModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center border-4 border-amber-400">
+      <div class="w-24 h-24 mx-auto rounded-full bg-gray-200 overflow-hidden border-4 border-amber-200 mb-4">
+        <img src="https://i.postimg.cc/vHL8zK9s/DSC-5320.jpg" alt="คุณครู">
+      </div>
+      <h2 class="text-2xl font-bold text-amber-900 mb-2">นายอภิรักษ์ คาแพงน้อย</h2>
+      <p class="text-sm text-amber-600 font-semibold mb-4">ผู้จัดทำและพัฒนาระบบ</p>
+      <button type="button" onclick="closeModal('teacherModal')" class="w-full bg-amber-400 text-white font-bold py-3 rounded-2xl">ปิดหน้าต่าง</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzXKen0FhhgHMqPAfVXDk8gb_blusDl4HMfJJtNqsGT60ODSviZvQeelK2T271wrLJA/exec';
+  const VISITOR_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby86vL3BiXwJHxnViPUebQQ4eCEgUEjSY4s8fm23dJgcWuUCkck5QVq3Pj3c162G7CX6g/exec';
+
+  function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
+  function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
+
+  let loggedInStudent = { id:"", name:"", grade:"", color:"" };
+
+  async function trackVisit(){
+    try{
+      const res = await fetch(VISITOR_SCRIPT_URL);
+      const data = await res.json();
+      // รองรับหลายรูปแบบผลลัพธ์ที่ Apps Script อาจส่งกลับมา เช่น {count:34}, {views:34}, 34, ["34"]
+      let count = null;
+      if (typeof data === 'number' || typeof data === 'string') {
+        count = data;
+      } else if (Array.isArray(data)) {
+        count = data.length ? data[data.length-1] : null;
+      } else if (data && typeof data === 'object') {
+        const key = Object.keys(data).find(k => /count|views|visit|hits|total|ผู้เข้าชม/i.test(k));
+        count = key ? data[key] : null;
+      }
+      const el = document.getElementById('visitorCount');
+      if(el && count !== null && count !== undefined) el.textContent = count;
+    }catch(e){
+      console.log('trackVisit error:', e);
+    }
+  }
+
+  // แปลงชื่อสี (ไทย/อังกฤษ) ที่ล็อกอินเข้ามา ให้เป็นสีจริงสำหรับกล่อง Color badge
+  function resolveTeamColor(colorText){
+    const c = String(colorText || "").trim().toLowerCase();
+    const map = [
+      { test: /pink|ชมพู/,  bg: 'rgba(255,90,183,.16)',  line: 'rgba(255,90,183,.5)',  text: '#a01663' },
+      { test: /blue|ฟ้า|น้ำเงิน/, bg: 'rgba(69,201,255,.16)', line: 'rgba(69,201,255,.5)', text: '#0a6ea3' },
+      { test: /orange|ส้ม/, bg: 'rgba(255,138,42,.16)',  line: 'rgba(255,138,42,.5)',  text: '#a25200' },
+      { test: /green|เขียว/, bg: 'rgba(85,223,111,.16)', line: 'rgba(85,223,111,.5)', text: '#1e7a37' },
+      { test: /red|แดง/,     bg: 'rgba(224,69,63,.16)',   line: 'rgba(224,69,63,.5)',   text: '#a12a25' },
+      { test: /yellow|เหลือง/,bg: 'rgba(255,210,95,.20)', line: 'rgba(255,210,95,.55)', text: '#8a5c00' },
+      { test: /purple|ม่วง/, bg: 'rgba(180,120,255,.18)', line: 'rgba(180,120,255,.5)', text: '#5b21a3' },
+    ];
+    const found = map.find(m => m.test.test(c));
+    return found || { bg: 'rgba(17,24,39,.05)', line: 'var(--line)', text: 'var(--text)' };
+  }
+
+  function enterApp(){
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('mainApp').style.display = '';
+
+    const group = document.getElementById('playerBadgeGroup');
+    const nameBadge = document.getElementById('nameBadge');
+    const gradeBadge = document.getElementById('gradeBadge');
+    const colorBadge = document.getElementById('colorBadge');
+    const idBadge = document.getElementById('idBadge');
+
+    if(nameBadge) nameBadge.textContent = `😀 ${loggedInStudent.name || '-'}`;
+
+    if(gradeBadge){
+      if(loggedInStudent.grade){ gradeBadge.textContent = `🎓 ${loggedInStudent.grade}`; gradeBadge.style.display=''; }
+      else{ gradeBadge.style.display = 'none'; }
+    }
+
+    if(colorBadge){
+      if(loggedInStudent.color){
+        const c = resolveTeamColor(loggedInStudent.color);
+        colorBadge.textContent = `🎨 ${loggedInStudent.color}`;
+        colorBadge.style.background = c.bg;
+        colorBadge.style.borderColor = c.line;
+        colorBadge.style.color = c.text;
+        colorBadge.style.display = '';
+      } else {
+        colorBadge.style.display = 'none';
+      }
+    }
+
+    if(idBadge) idBadge.textContent = `🆔 ${loggedInStudent.id || '-'}`;
+
+    if(group) group.style.display = 'flex';
+    trackVisit();
+  }
+
+  function backToLogin(){
+    try{
+      if(typeof stream !== 'undefined' && stream){ stream.getTracks().forEach(t=>t.stop()); stream = null; }
+      if(typeof matchActive !== 'undefined' && matchActive && typeof finishMatch === 'function'){ finishMatch(); }
+    }catch(e){}
+    document.getElementById('mainApp').style.display = 'none';
+    const group = document.getElementById('playerBadgeGroup');
+    if(group) group.style.display = 'none';
+    ['nameBadge','gradeBadge','colorBadge','idBadge'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el){ el.textContent=''; el.style.background=''; el.style.borderColor=''; el.style.color=''; }
+    });
+    const idInput = document.getElementById('studentId');
+    if(idInput) idInput.value = '';
+    loggedInStudent = { id:"", name:"", grade:"", color:"" };
+    document.getElementById('loginGate').style.display = 'flex';
+  }
+  window.backToLogin = backToLogin;
+
+  async function handleLogin(event) {
+    event.preventDefault();
+    const id = document.getElementById('studentId').value.trim();
+    const btn = document.getElementById('submitBtn');
+
+    if(!id){
+      document.getElementById('alertTitle').innerText = "กรอกข้อมูลไม่ครบ";
+      document.getElementById('alertMessage').innerText = "กรุณากรอกเลขประจำตัวนักเรียน";
+      openModal('alertModal');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "กำลังตรวจสอบ...";
+
+    try {
+      const response = await fetch(SCRIPT_URL);
+      const data = await response.json();
+      const student = data.find(s => String(s.id) === id);
+
+      if (student) {
+        console.log('student record from sheet:', student);
+        const gradeKey = Object.keys(student).find(k =>
+          /grade|ชั้น|ห้อง|class|room/i.test(k)
+        );
+        const grade = gradeKey ? student[gradeKey] : "";
+        const colorKey = Object.keys(student).find(k =>
+          /^color$|สีทีม|สีประจำทีม|^สี$|team.?color/i.test(k)
+        );
+        const color = colorKey ? student[colorKey] : "";
+        loggedInStudent = { id: student.id, name: student.name, grade, color };
+
+        document.getElementById('studentInfo').innerHTML =
+          `<p>รหัส: ${student.id}</p><p class="text-xl mt-2 font-bold">ชื่อ: ${student.name}</p>` +
+          (grade ? `<p class="mt-1">ชั้น: ${grade}</p>` : '') +
+          (color ? `<p class="mt-1">สี: ${color}</p>` : '');
+        openModal('welcomeModal');
+
+        // บันทึกเวลาเข้าใช้งานแบบไม่บล็อกการเข้าสู่ระบบ
+        fetch(SCRIPT_URL + '?action=log&id=' + encodeURIComponent(student.id)).catch(()=>{});
+      } else {
+        document.getElementById('alertTitle').innerText = "เลขประจำตัวไม่ถูกต้อง";
+        document.getElementById('alertMessage').innerText = "ไม่พบเลขประจำตัว " + id + " ในระบบ โปรดตรวจสอบใหม่อีกครั้ง";
+        openModal('alertModal');
+      }
+    } catch (error) {
+      document.getElementById('alertTitle').innerText = "เกิดข้อผิดพลาด";
+      document.getElementById('alertMessage').innerText = "ไม่สามารถเชื่อมต่อกับฐานข้อมูลได้ กรุณาลองใหม่อีกครั้ง";
+      openModal('alertModal');
+    }
+
+    btn.disabled = false;
+    btn.innerText = "🏆 เข้าสู่สนามกีฬาสี";
+  }
+</script>
+<!-- ===================== จบหน้าเข้าสู่ระบบ ===================== -->
+
+<div class="wrap" id="mainApp" style="display:none">
+  <header>
+    <div class="brand">
+      <div class="school-logo-ring">
+        <img src="https://i.postimg.cc/23pBLP0j/logo-rr.jpg" alt="โลโก้โรงเรียน" class="school-logo-img">
+      </div>
+      <div class="logo">🤖</div>
+      <div>
+        <h1>Sarasas JumpFit Battle</h1>
+        <div class="sub">เว็บแอปแข่งขัน Jumping Jack ของ Sarasas Witaed Suksa พร้อม AI ตรวจสีเสื้อและนับคะแนนแบบเรียลไทม์</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+        <button type="button" id="backToLoginBtn" onclick="backToLogin()" class="ghost" style="min-height:36px;padding:8px 14px;font-size:13px;border-radius:999px">🔙 กลับหน้าล็อคอิน</button>
+        <div id="playerBadgeGroup" style="display:none;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+          <div id="nameBadge" class="pill" style="background:rgba(85,217,255,.14);border-color:rgba(85,217,255,.4)"></div>
+          <div id="gradeBadge" class="pill" style="background:rgba(85,217,255,.14);border-color:rgba(85,217,255,.4)"></div>
+          <div id="colorBadge" class="pill"></div>
+          <div id="idBadge" class="pill" style="background:rgba(85,217,255,.14);border-color:rgba(85,217,255,.4)"></div>
+        </div>
+      </div>
+      <div class="pill"><span id="dot" class="dot"></span><span id="status">ยังไม่เปิดกล้อง</span></div>
+      <div id="visitorBadge" class="pill" style="background:rgba(255,210,95,.14);border-color:rgba(255,210,95,.4)">👁️ ผู้เข้าชม: <span id="visitorCount">-</span> ครั้ง</div>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <div class="stage" id="stage">
+        <div class="top-scoreboard" id="topScoreboard">
+          <div class="screen-score" style="--accent:#ff5ab7">
+            <small>ทีมชมพู</small><b id="top-pink">0</b><span>Pink</span>
+          </div>
+          <div class="screen-score" style="--accent:#45c9ff">
+            <small>ทีมฟ้า</small><b id="top-blue">0</b><span>Blue</span>
+          </div>
+          <div class="screen-score" style="--accent:#ff8a2a">
+            <small>ทีมส้ม</small><b id="top-orange">0</b><span>Orange</span>
+          </div>
+          <div class="screen-score" style="--accent:#55df6f">
+            <small>ทีมเขียว</small><b id="top-green">0</b><span>Green</span>
+          </div>
+        </div>
+        <video id="video" playsinline muted autoplay></video>
+        <canvas id="overlay"></canvas>
+        <div class="shade"></div>
+        <div id="empty" class="empty">
+          <div>
+            <div class="icon">📷</div>
+            <h2>กด “เปิดกล้อง”</h2>
+            <p>ระบบนี้แก้ให้เปิดกล้องก่อน แล้วระบุสีเสื้อทันทีได้แม้ AI Pose ยังโหลดไม่เสร็จ เหมาะสำหรับทดสอบจริงในห้องเรียน</p>
+          </div>
+        </div>
+        <div class="hud">
+          <div class="timer">
+            <small>เวลาที่เหลือ</small>
+            <div id="timer" class="time">01:00</div>
+          </div>
+          <div class="detected">
+            <small>ผลจำแนกสีเสื้อแบบทันที</small>
+            <strong id="liveText">ยังไม่พบสีเสื้อ</strong>
+            <span id="liveSub">ระบบจะแสดงสถานะ แขนขึ้น/ขาแยก/พร้อมนับ และนับทันทีเมื่อถึงจังหวะกางแขนกางขา</span>
+          </div>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="cameraBtn" class="primary">เปิดกล้อง</button>
+        <button id="zoomBtn" class="ghost">ขยายกล้อง: 1x</button>
+        <button id="matchBtn" class="success" disabled>เริ่มแข่ง</button>
+        <button id="resetBtn" class="ghost">รีเซ็ตคะแนน</button>
+        <button id="exportBtn" class="ghost">ส่งออก CSV</button>
+        <button id="fullBtn" class="ghost">เปิดจอใหญ่</button>
+      </div>
+    </section>
+
+    <aside class="side" id="sidePanels">
+<section class="card panel" data-panel="color">
+        <div class="title">สีเสื้อที่ตรวจพบตอนนี้ <span id="mlMode" style="font-size:12px;color:var(--muted)">ML: KNN พร้อมใช้</span><button class="hide-panel-btn" data-hide-panel="color" title="ซ่อนกล่องนี้">ซ่อน</button></div>
+        <div class="big-color">
+          <div id="bigDot" class="color-dot"></div>
+          <div>
+            <div id="bigName" class="color-name">ไม่ทราบสี</div>
+            <div id="confText" class="confidence">ความมั่นใจ 0%</div>
+            <div class="meter"><i id="confBar"></i></div>
+          </div>
+        </div>
+        <div id="secureNotice" class="notice"></div>
+      </section>
+
+      <section class="card panel" data-panel="score">
+        <div class="title">คะแนนทีม <span id="players" style="font-size:12px;color:var(--muted)">ผู้เล่น 0 คน</span><button class="hide-panel-btn" data-hide-panel="score" title="ซ่อนกล่องนี้">ซ่อน</button></div>
+        <div id="scoreGrid" class="score-grid"></div>
+      </section>
+
+      <section class="card panel" data-panel="settings">
+        <div class="title">ตั้งค่า<button class="hide-panel-btn" data-hide-panel="settings" title="ซ่อนกล่องนี้">ซ่อน</button></div>
+        <div class="settings">
+          <div class="mini-grid">
+            <div class="field">
+              <label>เวลาแข่งขัน <span>วินาที</span></label>
+              <input id="duration" type="number" min="10" max="600" value="60">
+            </div>
+            <div class="field">
+              <label>ผู้เล่นสูงสุด <span>AI Pose</span></label>
+              <input id="maxPoses" type="number" min="1" max="8" value="6">
+            </div>
+          </div>
+          <div class="field">
+            <label>ความไวการนับท่า <span id="sensLabel">ปกติ</span></label>
+            <input id="sensitivity" type="range" min="1" max="5" value="3">
+          </div>
+          <div class="field">
+            <label>ความเข้มงวด ML สีเสื้อ <span id="strictLabel">ปกติ</span></label>
+            <input id="strictness" type="range" min="1" max="5" value="3">
+          </div>
+          <div class="mini-grid">
+            <button id="soundBtn" class="ghost">เสียง: เปิด</button>
+            <button id="mirrorBtn" class="ghost">ภาพกระจก: เปิด</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card panel" data-panel="train">
+        <div class="title">Train ML สีเสื้อจากภาพจริง<button class="hide-panel-btn" data-hide-panel="train" title="ซ่อนกล่องนี้">ซ่อน</button></div>
+        <div style="color:var(--muted);font-size:13px;line-height:1.65;margin-bottom:10px">
+          ให้ตัวแทนทีมยืนกลางกล้อง แล้วกดเพิ่มตัวอย่างสี ระบบจะเก็บค่าจากเสื้อจริงเข้าโมเดล KNN ทำให้แม่นขึ้นตามแสงของห้อง
+        </div>
+        <div class="calib">
+          <button class="pink" data-train="pink">+ ตัวอย่างชมพู</button>
+          <button class="blue" data-train="blue">+ ตัวอย่างฟ้า</button>
+          <button class="orange" data-train="orange">+ ตัวอย่างส้ม</button>
+          <button class="green" data-train="green">+ ตัวอย่างเขียว</button>
+        </div>
+        <div class="mini-grid" style="margin-top:8px">
+          <button id="resetMLBtn" class="ghost">รีเซ็ตโมเดลสี</button>
+          <button id="saveMLBtn" class="ghost">บันทึกโมเดลในเครื่อง</button>
+        </div>
+      </section>
+
+      <section class="card panel" data-panel="rank">
+        <div class="title">อันดับ<button class="hide-panel-btn" data-hide-panel="rank" title="ซ่อนกล่องนี้">ซ่อน</button></div>
+        <table>
+          <thead><tr><th>ทีม</th><th>จำนวน</th><th>คุณภาพ</th></tr></thead>
+          <tbody id="rankBody"></tbody>
+        </table>
+      </section>
+
+      <section class="card panel" data-panel="log">
+        <div class="title">บันทึกระบบ<button class="hide-panel-btn" data-hide-panel="log" title="ซ่อนกล่องนี้">ซ่อน</button></div>
+        <div id="log" class="log"></div>
+      </section>
+    </aside>
+  </main>
+
+  <section id="bottomPanelControls" class="bottom-panel-wrap">
+    <section class="card panel-toggle-card bottom-panel-control" id="panelVisibilityCard">
+        <div class="title">เลือกแสดง/ซ่อนฟังก์ชันด้านขวา</div>
+        <div style="color:var(--muted);font-size:13px;line-height:1.6">
+          ติ๊กเลือกเฉพาะข้อมูลที่ต้องการแสดง หรือกดปุ่มซ่อนในแต่ละกล่องได้ทันที
+        </div>
+        <div class="panel-choice-grid">
+          <label class="panel-choice"><input type="checkbox" data-panel-check="color" checked> สีเสื้อที่ตรวจพบ</label>
+          <label class="panel-choice"><input type="checkbox" data-panel-check="score" checked> คะแนนทีม</label>
+          <label class="panel-choice"><input type="checkbox" data-panel-check="settings" checked> ตั้งค่า</label>
+          <label class="panel-choice"><input type="checkbox" data-panel-check="train" checked> Train ML สีเสื้อ</label>
+          <label class="panel-choice"><input type="checkbox" data-panel-check="rank" checked> อันดับ</label>
+          <label class="panel-choice"><input type="checkbox" data-panel-check="log" checked> บันทึกระบบ</label>
+        </div>
+        <div class="panel-actions">
+          <button id="showAllPanelsBtn" class="ghost panel-mini-btn">แสดงทั้งหมด</button>
+          <button id="hideAllPanelsBtn" class="ghost panel-mini-btn">ซ่อนทั้งหมด</button>
+        </div>
+        <div class="screen-hud-controls">
+          <div class="screen-control-title">ปรับแถบบนหน้าจอกล้อง</div>
+          <div class="screen-hud-grid">
+            <label class="panel-choice"><input type="checkbox" id="showScreenScores" checked> แสดงคะแนนบนจอ</label>
+            <label class="panel-choice"><input type="checkbox" id="showScreenTimer" checked> แสดงนาฬิกาจับเวลา</label>
+            <label class="panel-choice"><input type="checkbox" id="showScreenDetected" checked> แสดงสถานะ/สีเสื้อ</label>
+          </div>
+          <div class="screen-range-grid">
+            <div class="field">
+              <label>ขนาดคะแนนบนจอ <span id="scoreSizeLabel">เล็ก</span></label>
+              <input id="scoreSizeInput" type="range" min="50" max="100" value="72">
+            </div>
+            <div class="field">
+              <label>ขนาดนาฬิกาและแถบสถานะ <span id="hudSizeLabel">เล็ก</span></label>
+              <input id="hudSizeInput" type="range" min="50" max="150" value="78">
+            </div>
+          </div>
+        </div>
+
+      </section>
+  </section>
+
+</div>
+
+<canvas id="sampleCanvas" style="display:none"></canvas>
+<div id="toast" class="toast"></div>
+<div id="confetti" class="confetti"></div>
+
+<script type="module">
+  const video = document.getElementById("video");
+  const overlay = document.getElementById("overlay");
+  const ctx = overlay.getContext("2d");
+  const sampleCanvas = document.getElementById("sampleCanvas");
+  const sctx = sampleCanvas.getContext("2d", { willReadFrequently:true });
+
+  const $ = id => document.getElementById(id);
+  const stage = $("stage"), dot = $("dot"), statusEl = $("status"), empty = $("empty"), cameraBtn = $("cameraBtn"), zoomBtn = $("zoomBtn"), fullBtn = $("fullBtn"), matchBtn = $("matchBtn");
+  const resetBtn = $("resetBtn"), exportBtn = $("exportBtn"), durationEl = $("duration"), maxPosesEl = $("maxPoses");
+  const sensitivityEl = $("sensitivity"), strictnessEl = $("strictness"), sensLabel = $("sensLabel"), strictLabel = $("strictLabel");
+  const timerEl = $("timer"), liveText = $("liveText"), liveSub = $("liveSub"), bigDot = $("bigDot"), bigName = $("bigName");
+  const confText = $("confText"), confBar = $("confBar"), secureNotice = $("secureNotice"), scoreGrid = $("scoreGrid");
+  const playersEl = $("players"), rankBody = $("rankBody"), logEl = $("log"), toast = $("toast"), confetti = $("confetti");
+  const soundBtn = $("soundBtn"), mirrorBtn = $("mirrorBtn"), resetMLBtn = $("resetMLBtn"), saveMLBtn = $("saveMLBtn"), mlMode = $("mlMode");
+
+  const TEAMS = {
+    pink:{ th:"ชมพู", en:"Pink", emoji:"🌸", color:"#ff5ab7" },
+    blue:{ th:"ฟ้า", en:"Blue", emoji:"💧", color:"#45c9ff" },
+    orange:{ th:"ส้ม", en:"Orange", emoji:"🍊", color:"#ff8a2a" },
+    green:{ th:"เขียว", en:"Green", emoji:"🌿", color:"#55df6f" },
+    unknown:{ th:"ไม่ทราบสี", en:"Unknown", emoji:"❔", color:"#bfcce0" }
+  };
+  const LM = { lShoulder:11,rShoulder:12,lWrist:15,rWrist:16,lHip:23,rHip:24,lAnkle:27,rAnkle:28 };
+
+  let stream = null, running = false, matchActive = false, countdownActive = false;
+  let poseReady = false, poseLandmarker = null, lastVideoTime = -1, rafId = null;
+  let mirrorOn = true, soundOn = true, cameraZoom = 1, matchEndAt = 0, matchDuration = 60;
+  let lastFramePoses = [], tracks = new Map(), nextTrackId = 1, matchLog = [], lastLeader = null;
+  let livePrediction = { label:"unknown", confidence:0, hsv:null, source:"center" };
+  let teamScores = {};
+  let training = [];
+  let panelVisibility = { color:true, score:true, settings:true, train:true, rank:true, log:true };
+  let screenHudSettings = { scores:true, timer:true, detected:true, scoreScale:.72, hudScale:.78 };
+
+  function setStatus(text, mode="warn"){
+    statusEl.textContent = text;
+    dot.className = "dot";
+    if(mode==="ok") dot.classList.add("ok");
+    if(mode==="bad") dot.classList.add("bad");
+  }
+  function log(text){
+    const t = new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    const d = document.createElement("div");
+    d.textContent = `[${t}] ${text}`;
+    logEl.prepend(d);
+  }
+  function showToast(text){
+    toast.textContent = text;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>toast.classList.remove("show"),2300);
+  }
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+  function avg(a,b){ return (a+b)/2; }
+  function fmt(sec){
+    sec = Math.max(0, Math.ceil(sec));
+    return `${String(Math.floor(sec/60)).padStart(2,"0")}:${String(sec%60).padStart(2,"0")}`;
+  }
+
+  function initSecureNotice(){
+    const protocol = location.protocol;
+    const host = location.hostname;
+    const isLocalhost = host === "localhost" || host === "127.0.0.1" || host === "::1";
+    if(window.isSecureContext || isLocalhost || protocol === "file:"){
+      secureNotice.className = "notice ok";
+      secureNotice.innerHTML = "<b>สถานะกล้อง:</b> พร้อมทดสอบ ถ้าบน iPad/มือถือยังเปิดไม่ได้ ให้อัปโหลดไฟล์ขึ้น GitHub Pages แล้วเปิดผ่าน HTTPS";
+    }else{
+      secureNotice.className = "notice";
+      secureNotice.innerHTML = "<b>กล้องอาจไม่เปิด:</b> หน้าเว็บนี้ไม่ได้เปิดผ่าน HTTPS/localhost เบราว์เซอร์ส่วนใหญ่จะบล็อกกล้อง ให้ใช้ GitHub Pages, Netlify, Vercel หรือ localhost";
+    }
+  }
+
+  function initScores(){
+    ["pink","blue","orange","green"].forEach(k=>{
+      teamScores[k] = { count:0, qualitySum:0, reps:0, active:new Set() };
+    });
+    renderScoreCards();
+    renderRank();
+  }
+  function renderScoreCards(){
+    scoreGrid.innerHTML = "";
+    ["pink","blue","orange","green"].forEach(k=>{
+      const t = TEAMS[k];
+      const div = document.createElement("div");
+      div.className = "team";
+      div.style.setProperty("--accent", t.color);
+      div.innerHTML = `
+        <div class="name">${t.emoji} ทีม${t.th}</div>
+        <div id="count-${k}" class="count">0</div>
+        <div class="bar"><i id="bar-${k}"></i></div>
+        <div class="mini"><span>คุณภาพ</span><b id="q-${k}">0%</b></div>
+        <div class="mini"><span>ผู้เล่น</span><b id="p-${k}">0</b></div>
+      `;
+      scoreGrid.appendChild(div);
+    });
+  }
+  function updateScores(){
+    const max = Math.max(1, ...Object.values(teamScores).map(s=>s.count));
+    ["pink","blue","orange","green"].forEach(k=>{
+      const s = teamScores[k];
+      $(`count-${k}`).textContent = s.count;
+      $(`bar-${k}`).style.width = `${Math.round(s.count/max*100)}%`;
+      $(`q-${k}`).textContent = `${s.reps ? Math.round(s.qualitySum/s.reps) : 0}%`;
+      $(`p-${k}`).textContent = s.active.size;
+      const topEl = $(`top-${k}`);
+      if(topEl) topEl.textContent = s.count;
+    });
+    renderRank();
+  }
+  function renderRank(){
+    const rows = ["pink","blue","orange","green"].map(k=>{
+      const s = teamScores[k];
+      return { k, count:s.count, q:s.reps?Math.round(s.qualitySum/s.reps):0 };
+    }).sort((a,b)=>b.count-a.count || b.q-a.q);
+    rankBody.innerHTML = rows.map((r,i)=>`
+      <tr>
+        <td>${i+1}. <span style="color:${TEAMS[r.k].color};font-weight:950">${TEAMS[r.k].emoji} ทีม${TEAMS[r.k].th}</span></td>
+        <td>${r.count}</td><td>${r.q}%</td>
+      </tr>
+    `).join("");
+    if(matchActive && rows[0].count > 0 && rows[0].k !== lastLeader){
+      lastLeader = rows[0].k;
+      speak(`ทีม${TEAMS[rows[0].k].th}ขึ้นนำ`);
+    }
+  }
+
+  function buildDefaultTraining(){
+    training = [];
+    const seeds = {
+      pink:[330,.72,.92],
+      blue:[198,.70,.92],
+      orange:[28,.78,.95],
+      green:[124,.62,.82]
+    };
+    Object.entries(seeds).forEach(([label,base])=>{
+      for(let dh=-18; dh<=18; dh+=6){
+        for(let ds=-.16; ds<=.16; ds+=.08){
+          for(let dv=-.16; dv<=.16; dv+=.08){
+            addSample(label, { h:(base[0]+dh+360)%360, s:clamp(base[1]+ds,.18,1), v:clamp(base[2]+dv,.2,1) }, false);
+          }
+        }
+      }
+    });
+    loadSavedTraining();
+    updateMLMode();
+  }
+  function addSample(label, hsv, persist=true){
+    if(!hsv || label==="unknown") return;
+    training.push({ label, h:hsv.h, s:hsv.s, v:hsv.v, custom:persist });
+  }
+  function saveTraining(){
+    const custom = training.filter(x=>x.custom);
+    localStorage.setItem("jumpfit_knn_custom_samples", JSON.stringify(custom));
+    showToast(`บันทึกตัวอย่างสี ${custom.length} จุดในเครื่องแล้ว`);
+    log(`บันทึกตัวอย่าง ML ${custom.length} จุด`);
+  }
+  function loadSavedTraining(){
+    try{
+      const saved = JSON.parse(localStorage.getItem("jumpfit_knn_custom_samples") || "[]");
+      saved.forEach(x=>{
+        if(TEAMS[x.label] && Number.isFinite(x.h)) training.push(x);
+      });
+      if(saved.length) log(`โหลดตัวอย่าง ML ที่เคยบันทึก ${saved.length} จุด`);
+    }catch(e){}
+  }
+  function resetTraining(){
+    localStorage.removeItem("jumpfit_knn_custom_samples");
+    buildDefaultTraining();
+    showToast("รีเซ็ตโมเดลสีเป็นค่าเริ่มต้นแล้ว");
+    log("รีเซ็ต ML สีเสื้อ");
+  }
+  function updateMLMode(){
+    const custom = training.filter(x=>x.custom).length;
+    mlMode.textContent = `ML: KNN ${training.length} samples${custom?` / train เอง ${custom}`:""}`;
+  }
+
+  function classifyKNN(hsv){
+    if(!hsv) return { label:"unknown", rawLabel:"unknown", confidence:0, distances:[] };
+    if(hsv.s < 0.08 || hsv.v < 0.12) return { label:"unknown", rawLabel:"unknown", confidence:0, distances:[] };
+    const k = 9;
+    const strict = parseInt(strictnessEl.value,10);
+    const maxAvgDist = [0.92,0.80,0.68,0.58,0.50][strict-1];
+    const rows = training.map(s => ({ label:s.label, d:colorDistance(hsv, s) }))
+      .sort((a,b)=>a.d-b.d)
+      .slice(0,k);
+    const votes = {};
+    let totalWeight = 0;
+    rows.forEach(r=>{
+      const w = 1 / (r.d + 0.035);
+      votes[r.label] = (votes[r.label] || 0) + w;
+      totalWeight += w;
+    });
+    const best = Object.entries(votes).sort((a,b)=>b[1]-a[1])[0];
+    if(!best) return { label:"unknown", rawLabel:"unknown", confidence:0, distances:rows };
+    const same = rows.filter(r=>r.label===best[0]).slice(0,5);
+    const avgD = same.reduce((s,r)=>s+r.d,0) / Math.max(1, same.length);
+    let confidence = clamp((best[1] / totalWeight) * (1 - Math.min(avgD/maxAvgDist, .95)) * 1.75, 0, 1);
+    const pass = confidence >= [0.24,0.30,0.36,0.44,0.52][strict-1];
+    return { label: pass ? best[0] : "unknown", rawLabel:best[0], confidence, distances:rows, avgD };
+  }
+  function colorDistance(a,b){
+    const dh = Math.min(Math.abs(a.h-b.h), 360-Math.abs(a.h-b.h)) / 180;
+    const ds = Math.abs(a.s-b.s);
+    const dv = Math.abs(a.v-b.v);
+    return Math.sqrt(dh*dh*2.2 + ds*ds*0.8 + dv*dv*0.45);
+  }
+
+
+
+  function sizeLabel(value){
+    const v = Number(value);
+    if(v <= 58) return "เล็กมาก";
+    if(v <= 76) return "เล็ก";
+    if(v <= 95) return "ปกติ";
+    if(v <= 120) return "ใหญ่";
+    return "ใหญ่มาก";
+  }
+
+  function loadScreenHudSettings(){
+    try{
+      const saved = JSON.parse(localStorage.getItem("sarasas_jumpfit_screen_hud") || "{}");
+      screenHudSettings = { ...screenHudSettings, ...saved };
+      screenHudSettings.hudScale = Math.max(.50, Math.min(1.50, Number(screenHudSettings.hudScale) || .78));
+      screenHudSettings.scoreScale = Math.max(.50, Math.min(1.00, Number(screenHudSettings.scoreScale) || .72));
+    }catch(e){}
+    applyScreenHudSettings();
+  }
+
+  function saveScreenHudSettings(){
+    localStorage.setItem("sarasas_jumpfit_screen_hud", JSON.stringify(screenHudSettings));
+  }
+
+  function applyScreenHudSettings(){
+    if(!stage) return;
+    stage.style.setProperty("--scoreboard-display", screenHudSettings.scores ? "grid" : "none");
+    stage.style.setProperty("--timer-display", screenHudSettings.timer ? "block" : "none");
+    stage.style.setProperty("--detected-display", screenHudSettings.detected ? "block" : "none");
+    stage.style.setProperty("--score-scale", String(screenHudSettings.scoreScale));
+    stage.style.setProperty("--hud-scale", String(screenHudSettings.hudScale));
+    const hudEl = document.querySelector(".hud");
+    if(hudEl) hudEl.classList.toggle("hud-expanded", screenHudSettings.hudScale > 1.05);
+
+    if(showScreenScores) showScreenScores.checked = !!screenHudSettings.scores;
+    if(showScreenTimer) showScreenTimer.checked = !!screenHudSettings.timer;
+    if(showScreenDetected) showScreenDetected.checked = !!screenHudSettings.detected;
+    if(scoreSizeInput) scoreSizeInput.value = Math.round(screenHudSettings.scoreScale * 100);
+    if(hudSizeInput) hudSizeInput.value = Math.round(screenHudSettings.hudScale * 100);
+    if(scoreSizeLabel) scoreSizeLabel.textContent = sizeLabel(scoreSizeInput ? scoreSizeInput.value : 72);
+    if(hudSizeLabel) hudSizeLabel.textContent = sizeLabel(hudSizeInput ? hudSizeInput.value : 78);
+  }
+
+  function setupScreenHudControls(){
+    if(showScreenScores) showScreenScores.addEventListener("change", ()=>{
+      screenHudSettings.scores = showScreenScores.checked;
+      applyScreenHudSettings();
+      saveScreenHudSettings();
+    });
+    if(showScreenTimer) showScreenTimer.addEventListener("change", ()=>{
+      screenHudSettings.timer = showScreenTimer.checked;
+      applyScreenHudSettings();
+      saveScreenHudSettings();
+    });
+    if(showScreenDetected) showScreenDetected.addEventListener("change", ()=>{
+      screenHudSettings.detected = showScreenDetected.checked;
+      applyScreenHudSettings();
+      saveScreenHudSettings();
+    });
+    if(scoreSizeInput) scoreSizeInput.addEventListener("input", ()=>{
+      screenHudSettings.scoreScale = Number(scoreSizeInput.value) / 100;
+      applyScreenHudSettings();
+      saveScreenHudSettings();
+    });
+    if(hudSizeInput) hudSizeInput.addEventListener("input", ()=>{
+      screenHudSettings.hudScale = Number(hudSizeInput.value) / 100;
+      applyScreenHudSettings();
+      saveScreenHudSettings();
+    });
+  }
+
+  function loadPanelVisibility(){
+    try{
+      const saved = JSON.parse(localStorage.getItem("sarasas_jumpfit_panel_visibility") || "{}");
+      panelVisibility = { ...panelVisibility, ...saved };
+    }catch(e){}
+    applyPanelVisibility();
+  }
+
+  function savePanelVisibility(){
+    localStorage.setItem("sarasas_jumpfit_panel_visibility", JSON.stringify(panelVisibility));
+  }
+
+  function applyPanelVisibility(){
+    Object.entries(panelVisibility).forEach(([key, visible])=>{
+      document.querySelectorAll(`[data-panel="${key}"]`).forEach(panel=>{
+        panel.classList.toggle("side-panel-hidden", !visible);
+      });
+      document.querySelectorAll(`[data-panel-check="${key}"]`).forEach(chk=>{
+        chk.checked = !!visible;
+      });
+    });
+  }
+
+  function setPanelVisibility(key, visible){
+    panelVisibility[key] = !!visible;
+    applyPanelVisibility();
+    savePanelVisibility();
+  }
+
+  function setAllPanels(visible){
+    Object.keys(panelVisibility).forEach(key => panelVisibility[key] = !!visible);
+    applyPanelVisibility();
+    savePanelVisibility();
+    showToast(visible ? "แสดงฟังก์ชันด้านขวาทั้งหมดแล้ว" : "ซ่อนฟังก์ชันด้านขวาทั้งหมดแล้ว");
+  }
+
+  function setupPanelVisibilityControls(){
+    document.querySelectorAll("[data-panel-check]").forEach(chk=>{
+      chk.addEventListener("change", () => setPanelVisibility(chk.dataset.panelCheck, chk.checked));
+    });
+    document.querySelectorAll("[data-hide-panel]").forEach(btn=>{
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.hidePanel;
+        setPanelVisibility(key, false);
+        showToast("ซ่อนกล่องนี้แล้ว");
+      });
+    });
+    if(showAllPanelsBtn) showAllPanelsBtn.onclick = () => setAllPanels(true);
+    if(hideAllPanelsBtn) hideAllPanelsBtn.onclick = () => setAllPanels(false);
+  }
+
+  async function startCamera(){
+    if(stream){ stopCamera(); return; }
+    cameraBtn.disabled = true;
+    cameraBtn.textContent = "กำลังเปิดกล้อง...";
+    setStatus("กำลังขอสิทธิ์กล้อง", "warn");
+
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      setStatus("เบราว์เซอร์ไม่รองรับกล้อง", "bad");
+      showToast("เบราว์เซอร์นี้ไม่รองรับกล้อง หรือไม่ได้เปิดผ่าน HTTPS/localhost");
+      cameraBtn.disabled = false;
+      cameraBtn.textContent = "เปิดกล้อง";
+      return;
+    }
+
+    const constraintList = [
+      { video:{ facingMode:"user", width:{ideal:1280}, height:{ideal:720}, frameRate:{ideal:30,max:30} }, audio:false },
+      { video:{ facingMode:"user" }, audio:false },
+      { video:true, audio:false }
+    ];
+
+    let lastErr = null;
+    for(const constraints of constraintList){
+      try{
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        break;
+      }catch(err){
+        lastErr = err;
+        log(`ลองเปิดกล้องไม่สำเร็จ: ${err.name}`);
+      }
+    }
+
+    if(!stream){
+      const msg = explainCameraError(lastErr);
+      setStatus("เปิดกล้องไม่ได้", "bad");
+      secureNotice.className = "notice";
+      secureNotice.innerHTML = `<b>เปิดกล้องไม่ได้:</b> ${msg}`;
+      showToast(msg);
+      cameraBtn.disabled = false;
+      cameraBtn.textContent = "เปิดกล้อง";
+      return;
+    }
+
+    video.srcObject = stream;
+    video.setAttribute("playsinline", "true");
+    video.muted = true;
+    try{ await video.play(); }catch(e){ log("video.play ต้องให้ผู้ใช้แตะหน้าจออีกครั้งในบางอุปกรณ์"); }
+
+    empty.classList.add("hide");
+    running = true;
+    matchBtn.disabled = false;
+    cameraBtn.disabled = false;
+    cameraBtn.textContent = "ปิดกล้อง";
+    setStatus("เปิดกล้องแล้ว / กำลังอ่านสีเสื้อ", "ok");
+    log("เปิดกล้องสำเร็จ");
+    resize();
+    detectLoop();
+
+    loadPoseAI().catch(err=>{
+      poseReady = false;
+      mlMode.textContent = `ML สีพร้อม / Pose AI โหลดไม่สำเร็จ`;
+      log("Pose AI โหลดไม่สำเร็จ: " + err.message);
+      showToast("เปิดกล้องได้แล้ว แต่ AI Pose โหลดไม่สำเร็จ ระบบยังระบุสีเสื้อได้ทันที");
+    });
+  }
+
+  function stopCamera(){
+    running = false;
+    matchActive = false;
+    countdownActive = false;
+    if(rafId) cancelAnimationFrame(rafId);
+    if(stream) stream.getTracks().forEach(t=>t.stop());
+    stream = null;
+    video.srcObject = null;
+    empty.classList.remove("hide");
+    ctx.clearRect(0,0,overlay.width,overlay.height);
+    cameraBtn.textContent = "เปิดกล้อง";
+    matchBtn.disabled = true;
+    matchBtn.textContent = "เริ่มแข่ง";
+    setStatus("ปิดกล้องแล้ว", "warn");
+    log("ปิดกล้อง");
+  }
+
+  function explainCameraError(err){
+    if(!err) return "ไม่ทราบสาเหตุ กรุณาลองใช้ Chrome/Edge หรือเปิดผ่าน HTTPS";
+    if(err.name === "NotAllowedError") return "ผู้ใช้ยังไม่อนุญาตกล้อง ให้กด Allow/อนุญาต หรือไปที่ Site Settings แล้วเปิด Camera";
+    if(err.name === "NotFoundError") return "ไม่พบกล้องในอุปกรณ์";
+    if(err.name === "NotReadableError") return "กล้องถูกใช้อยู่โดยแอปอื่น ให้ปิด Zoom/Meet/Camera แล้วลองใหม่";
+    if(err.name === "OverconstrainedError") return "ค่ากล้องที่ขอสูงเกินไป ระบบลอง fallback แล้วแต่ยังไม่สำเร็จ";
+    if(err.name === "SecurityError") return "เบราว์เซอร์บล็อกกล้อง เพราะไม่ได้เปิดผ่าน HTTPS/localhost";
+    return `${err.name}: ${err.message || "เปิดกล้องไม่ได้"}`;
+  }
+
+  async function loadPoseAI(){
+    if(poseReady || poseLandmarker) return;
+    mlMode.textContent = "ML สีพร้อม / กำลังโหลด Pose AI...";
+    const mod = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/+esm");
+    const vision = await mod.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm");
+    const opts = {
+      baseOptions:{
+        modelAssetPath:"https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+        delegate:"GPU"
+      },
+      runningMode:"VIDEO",
+      numPoses:clamp(parseInt(maxPosesEl.value || "6",10),1,8),
+      minPoseDetectionConfidence:.45,
+      minPosePresenceConfidence:.45,
+      minTrackingConfidence:.45
+    };
+    try{
+      poseLandmarker = await mod.PoseLandmarker.createFromOptions(vision, opts);
+    }catch(gpuErr){
+      opts.baseOptions.delegate = "CPU";
+      poseLandmarker = await mod.PoseLandmarker.createFromOptions(vision, opts);
+    }
+    poseReady = true;
+    updateMLMode();
+    mlMode.textContent += " / Pose AI พร้อม";
+    log("โหลด MediaPipe Pose AI สำเร็จ");
+  }
+
+  function resize(){
+    const rect = video.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    overlay.width = Math.round(rect.width*dpr);
+    overlay.height = Math.round(rect.height*dpr);
+    overlay.style.width = rect.width + "px";
+    overlay.style.height = rect.height + "px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    sampleCanvas.width = video.videoWidth || 640;
+    sampleCanvas.height = video.videoHeight || 360;
+  }
+
+  function detectLoop(){
+    if(!running) return;
+    rafId = requestAnimationFrame(detectLoop);
+    if(video.readyState < 2) return;
+    resize();
+    sctx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
+
+    let poses = [];
+    if(poseReady && poseLandmarker && video.currentTime !== lastVideoTime){
+      lastVideoTime = video.currentTime;
+      try{
+        const res = poseLandmarker.detectForVideo(video, performance.now());
+        poses = res.landmarks || [];
+        lastFramePoses = poses;
+      }catch(e){
+        poses = [];
+      }
+    }
+
+    if(!poseReady || !poses.length){
+      const hsv = sampleCenterHSV();
+      const pred = classifyKNN(hsv);
+      livePrediction = { ...pred, hsv, source:"center" };
+      updateLiveColor();
+      drawFallbackOverlay(hsv, pred);
+    }else{
+      updateTracks(poses);
+      drawPoseOverlay(poses);
+    }
+    updateTimer();
+  }
+
+  function sampleCenterHSV(){
+    const w = sampleCanvas.width, h = sampleCanvas.height;
+    const rw = Math.round(w*0.26), rh = Math.round(h*0.30);
+    const x = Math.round(w*0.5 - rw/2), y = Math.round(h*0.38 - rh/2);
+    return sampleHSV(x, y, rw, rh);
+  }
+
+  function sampleTorsoHSV(lm){
+    const pts = [lm[LM.lShoulder],lm[LM.rShoulder],lm[LM.lHip],lm[LM.rHip]];
+    if(pts.some(p=>!p)) return null;
+    let xMin = Math.min(...pts.map(p=>p.x)), xMax = Math.max(...pts.map(p=>p.x));
+    let yMin = Math.min(lm[LM.lShoulder].y,lm[LM.rShoulder].y), yMax = Math.max(lm[LM.lHip].y,lm[LM.rHip].y);
+    const bw = xMax-xMin, bh = yMax-yMin;
+    xMin += bw*.08; xMax -= bw*.08; yMin += bh*.12; yMax -= bh*.06;
+    return sampleHSV(
+      Math.round(clamp(xMin,0,1)*sampleCanvas.width),
+      Math.round(clamp(yMin,0,1)*sampleCanvas.height),
+      Math.max(10, Math.round(clamp(xMax-xMin,.01,1)*sampleCanvas.width)),
+      Math.max(10, Math.round(clamp(yMax-yMin,.01,1)*sampleCanvas.height))
+    );
+  }
+
+  function sampleHSV(x,y,w,h){
+    x = clamp(x,0,sampleCanvas.width-2); y = clamp(y,0,sampleCanvas.height-2);
+    w = clamp(w,2,sampleCanvas.width-x); h = clamp(h,2,sampleCanvas.height-y);
+    const data = sctx.getImageData(x,y,w,h).data;
+    let sx=0, sy=0, ss=0, sv=0, n=0;
+    for(let i=0;i<data.length;i+=4*5){
+      const hsv = rgbToHsv(data[i],data[i+1],data[i+2]);
+      if(hsv.v < .12 || hsv.s < .08) continue;
+      const rad = hsv.h * Math.PI/180;
+      sx += Math.cos(rad); sy += Math.sin(rad); ss += hsv.s; sv += hsv.v; n++;
+    }
+    if(n < 8) return null;
+    let hDeg = Math.atan2(sy/n, sx/n) * 180/Math.PI;
+    if(hDeg < 0) hDeg += 360;
+    return { h:hDeg, s:ss/n, v:sv/n };
+  }
+
+  function rgbToHsv(r,g,b){
+    r/=255;g/=255;b/=255;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min;
+    let h=0;
+    if(d){
+      if(max===r) h=60*(((g-b)/d)%6);
+      else if(max===g) h=60*((b-r)/d+2);
+      else h=60*((r-g)/d+4);
+    }
+    if(h<0) h+=360;
+    return { h, s:max===0?0:d/max, v:max };
+  }
+
+  function updateLiveColor(){
+    const label = livePrediction.label || "unknown";
+    const t = TEAMS[label] || TEAMS.unknown;
+    const pct = Math.round((livePrediction.confidence || 0)*100);
+    bigDot.style.background = t.color;
+    bigDot.style.boxShadow = `0 0 34px ${t.color}66`;
+    bigName.textContent = t.th;
+    confText.textContent = `ความมั่นใจ ${pct}% | แหล่งอ่านสี: ${livePrediction.source === "pose" ? "ลำตัวจาก AI Pose" : "กรอบกลางภาพ"}`;
+    confBar.style.width = `${pct}%`;
+    confBar.style.background = t.color;
+    liveText.textContent = label === "unknown" ? "ยังไม่ทราบสีเสื้อ" : `เสื้อสี${t.th}`;
+    liveSub.textContent = livePrediction.hsv ? `H ${Math.round(livePrediction.hsv.h)}° / S ${Math.round(livePrediction.hsv.s*100)}% / V ${Math.round(livePrediction.hsv.v*100)}%` : "อ่านค่าสีไม่ชัด กรุณาเพิ่มแสงหรือยืนให้เสื้ออยู่ในกรอบ";
+  }
+
+  function updateTracks(poses){
+    const now = performance.now();
+    const active = { pink:new Set(), blue:new Set(), orange:new Set(), green:new Set() };
+    const detections = poses.map(lm=>{
+      const c = bodyCenter(lm);
+      const hsv = sampleTorsoHSV(lm);
+      const pred = classifyKNN(hsv);
+      return { lm, c, hsv, pred };
+    }).filter(d=>d.c);
+
+    if(detections.length){
+      const best = detections.slice().sort((a,b)=>b.pred.confidence-a.pred.confidence)[0];
+      livePrediction = { ...best.pred, hsv:best.hsv, source:"pose" };
+      updateLiveColor();
+    }
+
+    const used = new Set();
+    detections.forEach(d=>{
+      let bestId = null, bestD = 999;
+      tracks.forEach((tr,id)=>{
+        if(used.has(id) || now-tr.lastSeen > 1300) return;
+        const dd = Math.hypot(tr.x-d.c.x, tr.y-d.c.y);
+        if(dd < bestD && dd < .18){ bestD=dd; bestId=id; }
+      });
+
+      let tr;
+      if(bestId === null){
+        tr = { id:nextTrackId++, x:d.c.x, y:d.c.y, lastSeen:now, label:"unknown", hits:{}, state:"ready", count:0, reps:0, qualitySum:0, lastCount:0, lastFeedback:"" };
+        tracks.set(tr.id,tr);
+      }else{
+        tr = tracks.get(bestId);
+        tr.x = tr.x*.72 + d.c.x*.28; tr.y = tr.y*.72 + d.c.y*.28; tr.lastSeen = now;
+      }
+      used.add(tr.id);
+      updateTrackLabel(tr, d.pred);
+
+      if(tr.label !== "unknown") active[tr.label].add(tr.id);
+      const rep = detectJump(d.lm, tr);
+      if(rep.counted && matchActive){
+        const scoringLabel = tr.label !== "unknown" ? tr.label : (d.pred.rawLabel || d.pred.label || "unknown");
+        if(scoringLabel !== "unknown" && teamScores[scoringLabel]){
+          tr.label = scoringLabel;
+          teamScores[scoringLabel].count++;
+          teamScores[scoringLabel].qualitySum += rep.quality;
+          teamScores[scoringLabel].reps++;
+          tr.count++; tr.reps++; tr.qualitySum += rep.quality;
+          matchLog.push({ time:new Date().toISOString(), id:tr.id, team:scoringLabel, team_th:TEAMS[scoringLabel].th, count:tr.count, quality:rep.quality });
+          if(teamScores[scoringLabel].count % 10 === 0) speak(`ทีม${TEAMS[scoringLabel].th}ครบ ${teamScores[scoringLabel].count} ครั้ง`);
+          else beep(760,70,.045);
+        }else{
+          liveSub.textContent = "นับท่าได้ แต่ยังไม่รู้สีเสื้อ กรุณากด Train สีเสื้อของทีมก่อน";
+        }
+      }
+    });
+
+    Object.keys(active).forEach(k=>teamScores[k].active = active[k]);
+    [...tracks.entries()].forEach(([id,tr])=>{ if(now-tr.lastSeen > 2600) tracks.delete(id); });
+    playersEl.textContent = `ผู้เล่น ${tracks.size} คน`;
+    updateScores();
+  }
+
+  function updateTrackLabel(tr, pred){
+    const label = pred.label !== "unknown" ? pred.label : (pred.rawLabel || "unknown");
+    if(!tr.hits) tr.hits = {};
+    if(label !== "unknown"){
+      tr.hits[label] = (tr.hits[label] || 0) + Math.max(.35, pred.confidence || .25);
+    }
+    const top = Object.entries(tr.hits).sort((a,b)=>b[1]-a[1])[0];
+    if(top && top[1] >= .7) tr.label = top[0];
+    if(tr.label === "unknown" && label !== "unknown") tr.label = label;
+  }
+
+  function bodyCenter(lm){
+    const pts = [lm[LM.lShoulder],lm[LM.rShoulder],lm[LM.lHip],lm[LM.rHip]];
+    if(pts.some(p=>!p)) return null;
+    return { x:pts.reduce((s,p)=>s+p.x,0)/4, y:pts.reduce((s,p)=>s+p.y,0)/4 };
+  }
+
+  function detectJump(lm,tr){
+    const st = jumpState(lm);
+    if(!st.valid){
+      tr.lastFeedback = "ไม่เห็นแขน/ขาครบ";
+      return { counted:false, quality:0 };
+    }
+
+    const now = performance.now();
+    const openPeak = st.armsUp && st.legsOpen;
+    const resetPose = st.armsDown || st.legsClosed || (!st.armsUp && !st.legsOpen);
+
+    if(!tr.phase) tr.phase = "needOpen";
+
+    // Count immediately at the open peak. This is much more practical for classroom use.
+    if(tr.phase === "needOpen" && openPeak && now - (tr.lastCount || 0) > 450){
+      tr.phase = "needReset";
+      tr.state = "open";
+      tr.lastCount = now;
+      const q = clamp(Math.round(st.quality), 55, 100);
+      tr.lastFeedback = `นับแล้ว +1 | แขน:${st.armsUp?"ขึ้น":"ยัง"} ขา:${st.legsOpen?"แยก":"ยัง"}`;
+      return { counted:true, quality:q };
+    }
+
+    // The player only needs to return close/down enough before the next count.
+    if(tr.phase === "needReset" && resetPose && now - (tr.lastCount || 0) > 280){
+      tr.phase = "needOpen";
+      tr.state = "ready";
+      tr.lastFeedback = `พร้อมนับ | แขน:${st.armsUp?"ขึ้น":"ลง"} ขา:${st.legsOpen?"แยก":"ชิด"}`;
+      return { counted:false, quality:0 };
+    }
+
+    if(tr.phase === "needOpen"){
+      tr.lastFeedback = `รอนับ | แขน:${st.armsUp?"ขึ้น":"ยังไม่ขึ้น"} ขา:${st.legsOpen?"แยก":"ยังไม่แยก"}`;
+    }else{
+      tr.lastFeedback = `กลับท่าเริ่ม | แขน:${st.armsDown?"ลง":"ยัง"} ขา:${st.legsClosed?"ชิด":"ยัง"}`;
+    }
+
+    return { counted:false, quality:0 };
+  }
+
+  function jumpState(lm){
+    const need = [11,12,15,16,23,24,27,28];
+    if(need.some(i=>!lm[i] || (lm[i].visibility ?? .8) < .28)) return { valid:false };
+
+    const shoulderY = avg(lm[LM.lShoulder].y,lm[LM.rShoulder].y);
+    const hipY = avg(lm[LM.lHip].y,lm[LM.rHip].y);
+    const lWristY = lm[LM.lWrist].y;
+    const rWristY = lm[LM.rWrist].y;
+    const wristY = avg(lWristY, rWristY);
+    const ankleDist = Math.abs(lm[LM.lAnkle].x-lm[LM.rAnkle].x);
+    const shoulderDist = Math.abs(lm[LM.lShoulder].x-lm[LM.rShoulder].x);
+    const hipDist = Math.abs(lm[LM.lHip].x-lm[LM.rHip].x);
+    const scale = Math.max(shoulderDist, hipDist, .08);
+    const sens = parseInt(sensitivityEl.value,10);
+
+    // Easier default: wrists only need to reach around shoulder level,
+    // and ankles only need to be wider than body width.
+    const upAllowance = [.09,.075,.06,.045,.03][sens-1];
+    const downLine = shoulderY + (hipY - shoulderY) * [.42,.38,.34,.30,.26][sens-1];
+    const openRatio = [1.22,1.14,1.06,.98,.90][sens-1];
+    const closeRatio = [1.12,1.04,.96,.88,.80][sens-1];
+
+    const leftUp = lWristY < shoulderY + upAllowance;
+    const rightUp = rWristY < shoulderY + upAllowance;
+    const armsUp = leftUp && rightUp;
+    const armsDown = wristY > downLine;
+    const legsOpen = ankleDist > scale * openRatio;
+    const legsClosed = ankleDist < scale * closeRatio;
+
+    const armScore = clamp(((shoulderY + upAllowance - wristY + .10)/.24)*100,0,100);
+    const legScore = clamp(((ankleDist/scale - .75)/.65)*100,0,100);
+    return { valid:true, armsUp, armsDown, legsOpen, legsClosed, quality:Math.round(armScore*.55 + legScore*.45) };
+  }
+
+  function drawFallbackOverlay(hsv,pred){
+    const rect = video.getBoundingClientRect(), w = rect.width, h = rect.height;
+    ctx.clearRect(0,0,w,h);
+    const rw = w*.26, rh = h*.30, x = w*.5-rw/2, y = h*.38-rh/2;
+    const t = TEAMS[pred.label] || TEAMS.unknown;
+    ctx.save();
+    ctx.strokeStyle = t.color; ctx.lineWidth = 4; ctx.setLineDash([12,8]); roundRect(ctx,x,y,rw,rh,18); ctx.stroke(); ctx.setLineDash([]);
+    label(x+rw/2, y-38, `${t.emoji} ${pred.label==="unknown"?"อ่านสีเสื้อ...":"เสื้อสี"+t.th} ${Math.round(pred.confidence*100)}%`, t.color);
+    label(w/2, h*.78, "Fallback mode: อ่านสีจากกรอบกลางภาพ / Pose AI ยังไม่พร้อม", "rgba(255,255,255,.85)", true);
+    ctx.restore();
+  }
+
+  function drawPoseOverlay(poses){
+    const rect = video.getBoundingClientRect(), w = rect.width, h = rect.height;
+    ctx.clearRect(0,0,w,h);
+    poses.forEach(lm=>{
+      const c = bodyCenter(lm); if(!c) return;
+      const hsv = sampleTorsoHSV(lm), pred = classifyKNN(hsv);
+      const tr = nearestTrack(c);
+      const labelName = tr?.label || pred.label || "unknown";
+      const t = TEAMS[labelName] || TEAMS.unknown;
+      drawSkeleton(lm,w,h,t.color);
+      drawTorso(lm,w,h,t.color);
+      const txt = `${t.emoji} เสื้อสี${t.th} | #${tr?.id || "?"} | ${tr?.count || 0} ครั้ง | ${Math.round((pred.confidence||0)*100)}%`;
+      label(c.x*w, c.y*h-34, txt, t.color);
+      if(tr?.lastFeedback) label(c.x*w, c.y*h-4, tr.lastFeedback, "rgba(255,255,255,.85)", true);
+    });
+  }
+
+  function drawSkeleton(lm,w,h,color){
+    const lines = [[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28]];
+    ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.lineWidth = 5; ctx.strokeStyle = hexA(color,.86);
+    lines.forEach(([a,b])=>{
+      if(!lm[a] || !lm[b]) return;
+      if((lm[a].visibility ?? 1)<.35 || (lm[b].visibility ?? 1)<.35) return;
+      ctx.beginPath(); ctx.moveTo(lm[a].x*w,lm[a].y*h); ctx.lineTo(lm[b].x*w,lm[b].y*h); ctx.stroke();
+    });
+    ctx.fillStyle="#fff";
+    [11,12,13,14,15,16,23,24,25,26,27,28].forEach(i=>{
+      if(!lm[i] || (lm[i].visibility ?? 1)<.35) return;
+      ctx.beginPath(); ctx.arc(lm[i].x*w,lm[i].y*h,5,0,Math.PI*2); ctx.fill();
+    });
+  }
+  function drawTorso(lm,w,h,color){
+    const pts = [lm[LM.lShoulder],lm[LM.rShoulder],lm[LM.rHip],lm[LM.lHip]];
+    if(pts.some(p=>!p)) return;
+    ctx.beginPath(); ctx.moveTo(pts[0].x*w,pts[0].y*h);
+    pts.slice(1).forEach(p=>ctx.lineTo(p.x*w,p.y*h)); ctx.closePath();
+    ctx.fillStyle = hexA(color,.16); ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.fill(); ctx.stroke();
+  }
+  function label(x,y,text,color,small=false){
+    ctx.save();
+    ctx.font = small ? "700 12px system-ui" : "900 14px system-ui";
+    const m = ctx.measureText(text), pad=9, bw=m.width+pad*2, bh=small?25:30;
+    const left = clamp(x-bw/2,8,overlay.clientWidth-bw-8), top = clamp(y,8,overlay.clientHeight-bh-8);
+    ctx.fillStyle="rgba(7,17,31,.86)"; roundRect(ctx,left,top,bw,bh,10); ctx.fill();
+    ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle="#fff"; ctx.fillText(text,left+pad,top+(small?17:20)); ctx.restore();
+  }
+  function roundRect(c,x,y,w,h,r){
+    c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath();
+  }
+  function nearestTrack(c){
+    let best=null, bd=999;
+    tracks.forEach(tr=>{ const d=Math.hypot(tr.x-c.x,tr.y-c.y); if(d<bd){bd=d;best=tr;} });
+    return bd < .18 ? best : null;
+  }
+  function hexA(hex,a){
+    const n=parseInt(hex.replace("#",""),16), r=n>>16&255, g=n>>8&255, b=n&255;
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  async function trainFromCurrent(label){
+    if(!stream){ showToast("กรุณาเปิดกล้องก่อน"); return; }
+    let hsvs = [];
+    if(lastFramePoses.length){
+      lastFramePoses.slice(0,2).forEach(lm=>{ const h = sampleTorsoHSV(lm); if(h) hsvs.push(h); });
+    }
+    const center = sampleCenterHSV(); if(center) hsvs.push(center);
+    if(!hsvs.length){ showToast("อ่านสีไม่ได้ ลองยืนให้เสื้ออยู่กลางกล้องและเพิ่มแสง"); return; }
+    hsvs.forEach(h=>{
+      for(let i=0;i<24;i++){
+        addSample(label, {
+          h:(h.h + (Math.random()*10-5) + 360)%360,
+          s:clamp(h.s + (Math.random()*.08-.04),.05,1),
+          v:clamp(h.v + (Math.random()*.08-.04),.05,1)
+        }, true);
+      }
+    });
+    updateMLMode();
+    showToast(`เพิ่มตัวอย่างสี${TEAMS[label].th}แล้ว (${hsvs.length*24} samples)`);
+    log(`Train ML สี${TEAMS[label].th} +${hsvs.length*24} samples`);
+  }
+
+  async function startMatch(){
+    if(!stream || countdownActive) return;
+    if(matchActive){ finishMatch(); return; }
+    resetScores(false);
+    countdownActive = true;
+    matchBtn.disabled = true;
+    matchDuration = clamp(parseInt(durationEl.value || "60",10),10,600);
+    for(let i=3;i>=1;i--){
+      liveText.textContent = String(i);
+      liveSub.textContent = "เตรียมเริ่มการแข่งขัน";
+      beep(650+i*80,140);
+      await sleep(750);
+    }
+    countdownActive = false;
+    matchActive = true;
+    lastLeader = null;
+    matchEndAt = performance.now() + matchDuration*1000;
+    matchBtn.disabled = false;
+    matchBtn.textContent = "จบการแข่งขัน";
+    liveText.textContent = "GO!";
+    liveSub.textContent = "นับที่จังหวะกางแขนและกางขา จากนั้นกลับท่าเริ่มเพื่อรอนับครั้งถัดไป";
+    speak("เริ่ม");
+    log(`เริ่มแข่ง ${matchDuration} วินาที`);
+  }
+  function finishMatch(){
+    matchActive = false; countdownActive = false;
+    matchBtn.disabled = false; matchBtn.textContent = "เริ่มแข่ง";
+    timerEl.textContent = fmt(matchDuration);
+    const win = getWinner();
+    if(win){
+      liveText.textContent = `ผู้ชนะ: ทีม${TEAMS[win.k].th}`;
+      liveSub.textContent = `${win.count} ครั้ง | คุณภาพเฉลี่ย ${win.q}%`;
+      speak(`ผู้ชนะคือทีม${TEAMS[win.k].th}`);
+      burst(TEAMS[win.k].color);
+      log(`จบเกม ทีม${TEAMS[win.k].th} ชนะ ${win.count} ครั้ง`);
+    }else{
+      liveText.textContent = "จบการแข่งขัน";
+      liveSub.textContent = "ยังไม่มีคะแนน";
+      log("จบเกม ไม่มีคะแนน");
+    }
+  }
+  function getWinner(){
+    const rows = ["pink","blue","orange","green"].map(k=>{
+      const s=teamScores[k]; return { k, count:s.count, q:s.reps?Math.round(s.qualitySum/s.reps):0 };
+    }).sort((a,b)=>b.count-a.count || b.q-a.q);
+    return rows[0].count ? rows[0] : null;
+  }
+  function updateTimer(){
+    if(!matchActive) return;
+    const left = (matchEndAt - performance.now())/1000;
+    timerEl.textContent = fmt(left);
+    if(left <= 10 && left > 9.85) speak("เหลือสิบวินาที");
+    if(left <= 0) finishMatch();
+  }
+  function resetScores(show=true){
+    ["pink","blue","orange","green"].forEach(k=>{
+      teamScores[k].count=0; teamScores[k].qualitySum=0; teamScores[k].reps=0; teamScores[k].active=new Set();
+    });
+    tracks.forEach(tr=>{ tr.count=0; tr.reps=0; tr.qualitySum=0; tr.state="ready"; tr.phase="needOpen"; });
+    matchLog = []; lastLeader = null; updateScores();
+    matchDuration = clamp(parseInt(durationEl.value || "60",10),10,600);
+    timerEl.textContent = fmt(matchDuration);
+    if(show){ showToast("รีเซ็ตคะแนนแล้ว"); log("รีเซ็ตคะแนน"); }
+  }
+  function exportCSV(){
+    const summary = ["pink","blue","orange","green"].map(k=>{
+      const s = teamScores[k];
+      return { time:"SUMMARY", id:"", team:k, team_th:TEAMS[k].th, count:s.count, quality:s.reps?Math.round(s.qualitySum/s.reps):0 };
+    });
+    const rows = [{time:"timestamp",id:"track_id",team:"team",team_th:"team_th",count:"player_count",quality:"quality"},...matchLog,...summary];
+    const csv = rows.map(r=>[r.time,r.id,r.team,r.team_th,r.count,r.quality].map(x=>`"${String(x).replaceAll('"','""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+    a.download=`sarasas-jumpfit-battle-result-${new Date().toISOString().slice(0,19).replaceAll(":","-")}.csv`;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+  }
+
+  function beep(freq=880,dur=100,gain=.06){
+    if(!soundOn) return;
+    try{
+      const AC = window.AudioContext || window.webkitAudioContext;
+      const ac = new AC(), osc = ac.createOscillator(), g = ac.createGain();
+      osc.frequency.value=freq; g.gain.value=gain; osc.connect(g); g.connect(ac.destination); osc.start();
+      setTimeout(()=>{osc.stop(); ac.close();},dur);
+    }catch(e){}
+  }
+  function speak(text){
+    if(!soundOn) return beep(900,120);
+    try{
+      const u = new SpeechSynthesisUtterance(text); u.lang="th-TH"; u.rate=1.05; u.volume=.9;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    }catch(e){ beep(900,120); }
+  }
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+  function burst(color){
+    confetti.innerHTML="";
+    const colors=[color,"#45c9ff","#ff5ab7","#ff8a2a","#55df6f","#fff"];
+    for(let i=0;i<80;i++){
+      const s=document.createElement("span");
+      s.style.left=Math.random()*100+"vw"; s.style.background=colors[Math.floor(Math.random()*colors.length)];
+      s.style.animationDuration=(1.7+Math.random()*1.9)+"s"; s.style.animationDelay=(Math.random()*.25)+"s";
+      confetti.appendChild(s);
+    }
+    setTimeout(()=>confetti.innerHTML="",4200);
+  }
+  function updateLabels(){
+    sensLabel.textContent = ["ง่ายมาก","ง่าย","ปกติ","เข้มงวด","เข้มงวดมาก"][parseInt(sensitivityEl.value,10)-1];
+    strictLabel.textContent = ["ผ่อนคลายมาก","ผ่อนคลาย","ปกติ","เข้มงวด","เข้มงวดมาก"][parseInt(strictnessEl.value,10)-1];
+  }
+  function applyMirror(){
+    const sx = mirrorOn ? -1 : 1;
+    const t = `scaleX(${sx}) scale(${cameraZoom})`;
+    video.style.transform = t;
+    overlay.style.transform = t;
+    mirrorBtn.textContent = `ภาพกระจก: ${mirrorOn ? "เปิด" : "ปิด"}`;
+    if(zoomBtn) zoomBtn.textContent = `ขยายกล้อง: ${cameraZoom}x`;
+  }
+
+  function toggleCameraZoom(){
+    const levels = [1, 1.25, 1.5, 1.75, 2];
+    const idx = levels.indexOf(cameraZoom);
+    cameraZoom = levels[(idx + 1) % levels.length];
+    applyMirror();
+    showToast(`ขยายกล้อง ${cameraZoom}x`);
+  }
+
+
+  async function toggleFullscreenStage(){
+    if(!document.fullscreenElement){
+      try{
+        await stage.requestFullscreen();
+      }catch(e){
+        stage.classList.add("fullscreen-stage");
+        if(fullBtn) fullBtn.textContent = "ออกจากจอใหญ่";
+        setTimeout(resize, 80);
+      }
+    }else{
+      await document.exitFullscreen();
+    }
+  }
+
+  function syncFullscreenClass(){
+    const isFull = document.fullscreenElement === stage;
+    stage.classList.toggle("fullscreen-stage", isFull);
+    if(fullBtn) fullBtn.textContent = isFull ? "ออกจากจอใหญ่" : "เปิดจอใหญ่";
+    setTimeout(resize, 80);
+  }
+
+  cameraBtn.onclick = startCamera;
+  if(zoomBtn) zoomBtn.onclick = toggleCameraZoom;
+  if(fullBtn) fullBtn.onclick = toggleFullscreenStage;
+  matchBtn.onclick = startMatch;
+  resetBtn.onclick = ()=>resetScores(true);
+  exportBtn.onclick = exportCSV;
+  soundBtn.onclick = ()=>{ soundOn=!soundOn; soundBtn.textContent=`เสียง: ${soundOn?"เปิด":"ปิด"}`; if(soundOn) beep(); };
+  mirrorBtn.onclick = ()=>{ mirrorOn=!mirrorOn; applyMirror(); };
+  resetMLBtn.onclick = resetTraining;
+  saveMLBtn.onclick = saveTraining;
+  document.querySelectorAll("[data-train]").forEach(b=>b.onclick=()=>trainFromCurrent(b.dataset.train));
+  durationEl.oninput = ()=>{ if(!matchActive){ matchDuration=clamp(parseInt(durationEl.value||"60",10),10,600); timerEl.textContent=fmt(matchDuration); } };
+  sensitivityEl.oninput = updateLabels;
+  strictnessEl.oninput = updateLabels;
+  window.onresize = resize;
+  document.addEventListener("fullscreenchange", syncFullscreenClass);
+  window.addEventListener("beforeunload",()=>{ if(stream) stream.getTracks().forEach(t=>t.stop()); });
+
+  setupPanelVisibilityControls();
+  setupScreenHudControls();
+  loadPanelVisibility();
+  loadScreenHudSettings();
+  initSecureNotice();
+  buildDefaultTraining();
+  initScores();
+  updateScores();
+  updateLabels();
+  applyMirror();
+  timerEl.textContent = fmt(parseInt(durationEl.value,10));
+  setStatus("พร้อมเปิดกล้อง", "warn");
+  log("Sarasas JumpFit Battle พร้อมใช้งาน: กล้อง + ML สีเสื้อ + Pose AI fallback");
+</script>
+<script>
+  // เอฟเฟกต์ ripple ตอนกดปุ่มทุกปุ่มในหน้าเว็บ
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('button');
+    if(!btn || btn.disabled) return;
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const ripple = document.createElement('span');
+    ripple.className = 'btn-ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+    ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+    btn.appendChild(ripple);
+    ripple.addEventListener('animationend', () => ripple.remove());
+  });
+</script>
+</body>
+</html>
